@@ -154,6 +154,96 @@ public class DocumentController extends BaseController {
         });
         return response;
     }
+    
+    /**
+     * Loads all pending access requests from access_requests collection and returns back to client.
+     */
+    @GET
+    @Path("/allPendingAccessRequests")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getAllPendingRequests(
+    		@PathParam("dbName") final String dbName,
+            @PathParam("collectionName") final String collectionName,
+            @QueryParam("query") final String query,
+            @QueryParam("connectionId") final String connectionId,
+            @QueryParam("fields") final String fields,
+            @QueryParam("limit") final String limit,
+            @QueryParam("skip") final String skip,
+            @QueryParam("sortBy") final String sortBy,
+            @Context final HttpServletRequest request) {
+
+        String response = new ResponseTemplate().execute(logger, connectionId, request, new ResponseCallback() {
+            public Object execute() throws Exception {
+            	int docsLimit = Integer.parseInt(limit);
+                int docsSkip = Integer.parseInt(skip);
+            	DocumentService documentService = new DocumentServiceImpl(connectionId);
+            	JSONObject result = documentService.getQueriedDocsList(dbName, "access_requests", "find", "{ status : \"PENDING\" }", fields, sortBy, docsLimit, docsSkip);
+                result.put("isPendingAccessRequests", true);
+                return result;
+            }
+        });
+        return response;
+    }
+    
+    @POST
+    @Path("/acceptRequest")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String acceptPendingRequest(@PathParam("dbName") final String dbName, @PathParam("collectionName") final String collectionName, @DefaultValue("POST") @QueryParam("action") final String action,
+                                  @FormParam("document") final String documentData, @FormParam("_id") final String _id, @FormParam("keys") final String keys, @QueryParam("connectionId") final String connectionId,
+                                  @Context final HttpServletRequest request) {
+
+        String response = new ResponseTemplate().execute(logger, connectionId, request, new ResponseCallback() {
+            public Object execute() throws Exception {
+
+                DocumentService documentService = new DocumentServiceImpl(connectionId);
+                JSONObject result = null;
+                
+                if ("".equals(_id) || "".equals(keys)) {
+                    ApplicationException e = new DocumentException(ErrorCodes.DOCUMENT_DOES_NOT_EXIST, "Document Data Missing in Request Body");
+                    formErrorResponse(logger, e);
+                } else {
+                    DBObject doc = (DBObject) JSON.parse(keys);
+                    doc.put("status", "GRANTED");
+                    documentService.updateDocument(dbName, collectionName, _id, doc);
+                    result = documentService.getQueriedDocsList(dbName, "access_requests", "find", "{ status : \"PENDING\" }", "username,status,email,location,name,userid", "{_id:1}", 10, 0);
+                    result.put("isPendingAccessRequests", true);
+                }
+                return result;
+            }
+        });
+        return response;
+    }
+
+    
+    @POST
+    @Path("/rejectRequest")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String rejectPendingRequest(@PathParam("dbName") final String dbName, @PathParam("collectionName") final String collectionName, @DefaultValue("POST") @QueryParam("action") final String action,
+                                  @FormParam("document") final String documentData, @FormParam("_id") final String _id, @FormParam("keys") final String keys, @QueryParam("connectionId") final String connectionId,
+                                  @Context final HttpServletRequest request) {
+
+        String response = new ResponseTemplate().execute(logger, connectionId, request, new ResponseCallback() {
+            public Object execute() throws Exception {
+
+                DocumentService documentService = new DocumentServiceImpl(connectionId);
+                JSONObject result = null;
+                
+                if ("".equals(_id) || "".equals(keys)) {
+                    ApplicationException e = new DocumentException(ErrorCodes.DOCUMENT_DOES_NOT_EXIST, "Document Data Missing in Request Body");
+                    formErrorResponse(logger, e);
+                } else {
+                    DBObject doc = (DBObject) JSON.parse(keys);
+                    doc.put("status", "DENIED");
+                    documentService.updateDocument(dbName, collectionName, _id, doc);
+                    result = documentService.getQueriedDocsList(dbName, "access_requests", "find", "{ status : \"PENDING\" }", "username,status,email,location,name,userid", "{_id:1}", 10, 0);
+                    result.put("isPendingAccessRequests", true);
+                }
+                return result;
+            }
+        });
+        return response;
+    }
+
 
     /**
      * Gets the keys within a nested document and adds it to the complete Set.

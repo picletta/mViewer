@@ -44,7 +44,7 @@ YUI({
         var initQueryBox = function(event) {
             Y.one("#currentColl").set("value", event.currentTarget.getAttribute("label"));
             MV.selectDBItem(event.currentTarget);
-            MV.loadQueryBox(MV.URLMap.getDocKeys(), MV.URLMap.getDocs(), sm.currentColl(), showTabView);
+            MV.loadQueryBox(MV.URLMap.getDocKeys(), MV.URLMap.getDocs(), sm.currentColl(), showTabView, MV.URLMap.getAllPedingAccessRequests());
         };
 
         /**

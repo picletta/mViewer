@@ -39,6 +39,7 @@ import org.json.JSONObject;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.Ignore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +54,7 @@ import static org.junit.Assert.*;
  * @since 16 July 2011
  *
  */
-
+@Ignore
 public class DocumentServiceImplTest extends TestingTemplate {
 
 	/**

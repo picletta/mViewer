@@ -1,9 +1,9 @@
 YUI.add('query-executor', function(Y) {
     YUI.namespace('com.imaginea.mongoV');
     var MV = YUI.com.imaginea.mongoV;
-    var successHandler, currentSelection;
+    var successHandler, currentSelection, isShowPendingAccessRequests=false;
 
-    MV.loadQueryBox = function(keysUrl, dataUrl, selectedCollection, sHandler) {
+    MV.loadQueryBox = function(keysUrl, dataUrl, selectedCollection, sHandler, pendingAccessRequestUrl) {
 
         successHandler = sHandler;
         currentSelection = selectedCollection;
@@ -16,6 +16,7 @@ YUI.add('query-executor', function(Y) {
             data: 'allKeys=false',
             on: {
                 success: function(ioId, responseObject) {
+                	isShowPendingAccessRequests = false;
                     populateQueryBox(ioId, responseObject);
                     executeQuery(null);
                     // Now sending request to fetch all keys
@@ -43,6 +44,7 @@ YUI.add('query-executor', function(Y) {
                     data: queryParams,
                     on: {
                         success: function(request, response) {
+                        	isShowPendingAccessRequests = false;
                             var parsedResponse = Y.JSON.parse(response.responseText).response;
                             var result = parsedResponse.result, error = parsedResponse.error;
                             if (result && !error) {
@@ -62,6 +64,39 @@ YUI.add('query-executor', function(Y) {
             }
         }
 
+        /**
+         * The function is an event handler for the show all pending requests button.
+         */
+        function showAllPendingRequests(event) {
+        	var queryParams = getQueryParameters();
+        	if (queryParams !== undefined) {
+	            MV.showLoadingPanel("Loading all pending requests...");
+	            Y.io(pendingAccessRequestUrl, {
+	                method: "GET",
+	                data: queryParams,
+	                on: {
+	                   success: function(request, response) {
+	                	   isShowPendingAccessRequests = true;
+	                        var parsedResponse = Y.JSON.parse(response.responseText).response;
+	                        var result = parsedResponse.result, error = parsedResponse.error;
+	                        if (result && !error) {
+	                            updateAnchors(result.count, result.editable);
+	                            successHandler(result);
+	                        } else {
+	                            MV.hideLoadingPanel();
+	                            MV.showAlertMessage("Error executing query: [0]".format(error.message), MV.warnIcon);
+	                        }
+	                        },
+	                        failure: function(request, response) {
+	                            MV.hideLoadingPanel();
+	                            MV.showAlertMessage("Error executing query: [0]".format(response.responseText), MV.warnIcon);
+	                        }
+	                    }
+	                });
+        	}
+        }
+
+        
         function populateAllKeys() {
             Y.io(keysUrl, {
                 method: "GET",
@@ -134,7 +169,12 @@ YUI.add('query-executor', function(Y) {
                 checkList += "</div>";
                 checkList += "</div>";
             }
-            return upperPartTemplate.format(currentSelection) + checkList + lowerPartTemplate;
+            if(currentSelection === 'access_requests') {
+            	return upperPartTemplate.format(currentSelection) + checkList + lowerPartTemplate + showPendingAccessRequests;
+            } else {
+            	return upperPartTemplate.format(currentSelection) + checkList + lowerPartTemplate;
+            }
+            
         };
 
         function formatKeys(keys) {
@@ -169,6 +209,8 @@ YUI.add('query-executor', function(Y) {
             "<button id='execQueryButton' class='bttn'>Execute Query</button>",
             "</div>"
         ].join('\n');
+        
+        var showPendingAccessRequests = ["<div id='parametersDiv'>","<button id='showAllPendingRequests' class='bttn'>Show All Pending Requests</button>","</div>"].join('\n');
 
         var paginatorTemplate = [
             "<div id='paginator'>",
@@ -183,6 +225,7 @@ YUI.add('query-executor', function(Y) {
 
         function initListeners() {
             Y.on("click", executeQuery, "#execQueryButton");
+            Y.on("click", showAllPendingRequests, "#showAllPendingRequests");
             Y.on("click", handleSelect, "#selectAll");
             Y.on("click", handleSelect, "#unselectAll");
             Y.on("click", handlePagination, "#first");
@@ -192,19 +235,32 @@ YUI.add('query-executor', function(Y) {
             Y.on("keyup", function(eventObject) {
                 // insert a ctrl + enter listener for query evaluation
                 if (eventObject.ctrlKey && eventObject.keyCode === 13) {
-                    Y.one('#execQueryButton').simulate('click');
+                	if(isShowPendingAccessRequests) {
+                		Y.one('#showAllPendingRequests').simulate('click');
+                	} else {
+                		Y.one('#execQueryButton').simulate('click');
+                	}
+                    
                 }
             }, "#queryBox");
             Y.on("keyup", function(eventObject) {
                 // insert a ctrl + enter listener for query evaluation on skip field
                 if (eventObject.ctrlKey && eventObject.keyCode === 13) {
-                    Y.one('#execQueryButton').simulate('click');
+                	if(isShowPendingAccessRequests) {
+                		Y.one('#showAllPendingRequests').simulate('click');
+                	} else {
+                		Y.one('#execQueryButton').simulate('click');
+                	}
                 }
             }, "#skip");
             Y.on("keyup", function(eventObject) {
                 // insert a ctrl + enter listener for query evaluation on limit field
                 if (eventObject.ctrlKey && eventObject.keyCode === 13) {
-                    Y.one('#execQueryButton').simulate('click');
+                	if(isShowPendingAccessRequests) {
+                		Y.one('#showAllPendingRequests').simulate('click');
+                	} else {
+                		Y.one('#execQueryButton').simulate('click');
+                	}
                 }
             }, "#limit");
         }
@@ -239,7 +295,11 @@ YUI.add('query-executor', function(Y) {
             } else if (id === "last") {
                 skip.set('value', countValue - limitValue);
             }
-            Y.one('#execQueryButton').simulate('click');
+            if(isShowPendingAccessRequests) {
+        		Y.one('#showAllPendingRequests').simulate('click');
+        	} else {
+        		Y.one('#execQueryButton').simulate('click');
+        	}
             updateAnchors(countValue, true);
         }
 

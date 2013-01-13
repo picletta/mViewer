@@ -35,6 +35,8 @@ import org.apache.log4j.PropertyConfigurator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.Ignore;
+
 import org.springframework.mock.web.MockHttpServletRequest;
 
 import static org.junit.Assert.assertEquals;
@@ -48,6 +50,7 @@ import static org.junit.Assert.assertNotNull;
  * @author Rachit Mittal
  * @since 15 July 2011
  */
+@Ignore
 public class UserLogoutTest extends BaseController {
 	private MongoInstanceProvider mongoInstanceProvider;
 	private static Mongo mongoInstance;

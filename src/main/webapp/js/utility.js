@@ -229,6 +229,9 @@ YUI.add('utility', function(Y) {
         getDocKeys: function() {
             return "services/[0]/[1]/document/keys?connectionId=[2]&ts=[3]".format(sm.currentDB(), sm.currentColl(), sm.connectionId(), sm.now());
         },
+        getAllPedingAccessRequests: function(params) {
+            return "services/[0]/[1]/document/allPendingAccessRequests?connectionId=[2]&ts=[3][4]".format(sm.currentDB(), sm.currentColl(), sm.connectionId(), sm.now(), params);
+        },
         getDocs: function(params) {
             return "services/[0]/[1]/document?connectionId=[2]&ts=[3][4]".format(sm.currentDB(), sm.currentColl(), sm.connectionId(), sm.now(), params);
         },
@@ -237,6 +240,12 @@ YUI.add('utility', function(Y) {
         },
         updateDoc: function() {
             return "services/[0]/[1]/document?connectionId=[2]&ts=[3]".format(sm.currentDB(), sm.currentColl(), sm.connectionId(), sm.now());
+        },
+        acceptRequest: function() {
+            return "services/[0]/[1]/document/acceptRequest?connectionId=[2]&ts=[3]".format(sm.currentDB(), sm.currentColl(), sm.connectionId(), sm.now());
+        },
+        rejectRequest: function() {
+            return "services/[0]/[1]/document/rejectRequest?connectionId=[2]&ts=[3]".format(sm.currentDB(), sm.currentColl(), sm.connectionId(), sm.now());
         },
         deleteDoc: function() {
             return "services/[0]/[1]/document?connectionId=[2]&action=DELETE&ts=[3]".format(sm.currentDB(), sm.currentColl(), sm.connectionId(), sm.now());

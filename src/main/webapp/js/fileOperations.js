@@ -34,7 +34,7 @@ YUI({
         var initQueryBox = function(event) {
             Y.one("#currentBucket").set("value", event.currentTarget.getAttribute("label"));
             MV.selectDBItem(event.currentTarget);
-            MV.loadQueryBox(MV.URLMap.getFilesCount(), MV.URLMap.getFiles(), sm.currentBucket(), showTabView);
+            MV.loadQueryBox(MV.URLMap.getFilesCount(), MV.URLMap.getFiles(), sm.currentBucket(), showTabView, MV.URLMap.getAllPedingAccessRequests());
         };
 
         /**

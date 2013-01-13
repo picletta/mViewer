@@ -37,6 +37,7 @@ import org.apache.log4j.PropertyConfigurator;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.Ignore;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpSession;
 
@@ -58,6 +59,7 @@ import static org.junit.Assert.assertEquals;
  * @since 15 July 2011
  *
  */
+@Ignore
 public class CollectionControllerTest extends TestingTemplate {
 
 	private MongoInstanceProvider mongoInstanceProvider;

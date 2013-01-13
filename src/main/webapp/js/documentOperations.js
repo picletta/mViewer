@@ -32,7 +32,8 @@ YUI({
         }));
         var actionMap = {
             save: "save",
-            edit: "edit"
+            edit: "edit",
+            accept: "accept"
         };
 
         var idMap = {};
@@ -40,7 +41,7 @@ YUI({
         var initQueryBox = function(event) {
             Y.one("#currentColl").set("value", event.currentTarget.getAttribute("label"));
             MV.selectDBItem(event.currentTarget);
-            MV.loadQueryBox(MV.URLMap.getDocKeys(), MV.URLMap.getDocs(), sm.currentColl(), showTabView);
+            MV.loadQueryBox(MV.URLMap.getDocKeys(), MV.URLMap.getDocs(), sm.currentColl(), showTabView, MV.URLMap.getAllPedingAccessRequests());
         };
 
         /**
@@ -91,19 +92,35 @@ YUI({
             ];
 
             if (response.editable) {
-                trTemplate.splice(2, 0, "<div class='actionsDiv'>",
-                    "<button id='edit[3]'class='bttn editbtn non-navigable'>edit</button>",
-                    "<button id='delete[4]'class='bttn deletebtn non-navigable'>delete</button>",
-                    "<button id='save[5]'class='bttn savebtn non-navigable invisible'>save</button>",
-                    "<button id='cancel[6]'class='bttn cancelbtn non-navigable invisible'>cancel</button>",
-                    "</div>")
+            	if (response.isPendingAccessRequests) {
+            		trTemplate.splice(2, 0, "<div class='actionsDiv'>",
+                            "<button id='edit[3]'class='bttn editbtn non-navigable invisible'>edit</button>",
+                            "<button id='delete[4]'class='bttn deletebtn non-navigable invisible'>delete</button>",
+                            "<button id='save[5]'class='bttn savebtn non-navigable invisible'>save</button>",
+                            "<button id='cancel[6]'class='bttn cancelbtn non-navigable invisible'>cancel</button>",
+                            "<button id='accept[7]'class='bttn acceptbtn non-navigable'>accept</button>",
+                            "<button id='reject[8]'class='bttn rejectbtn non-navigable'>reject</button>",
+                            "</div>");
+            	} else {
+            		trTemplate.splice(2, 0, "<div class='actionsDiv'>",
+                            "<button id='edit[3]'class='bttn editbtn non-navigable'>edit</button>",
+                            "<button id='delete[4]'class='bttn deletebtn non-navigable'>delete</button>",
+                            "<button id='save[5]'class='bttn savebtn non-navigable invisible'>save</button>",
+                            "<button id='cancel[6]'class='bttn cancelbtn non-navigable invisible'>cancel</button>",
+                            "<button id='accept[7]'class='bttn acceptbtn non-navigable invisible'>accept</button>",
+                            "<button id='reject[8]'class='bttn rejectbtn non-navigable invisible'>reject</button>",
+                            "</div>");
+            		
+            	}
+                
             }
             trTemplate = trTemplate.join('\n');
             jsonView += "<table class='jsonTable'><tbody>";
 
             var documents = response.documents;
             for (var i = 0; i < documents.length; i++) {
-                jsonView += trTemplate.format(i, i, Y.JSON.stringify(documents[i], null, 4), i, i, i, i);
+            	
+                jsonView += trTemplate.format(i, i, Y.JSON.stringify(documents[i], null, 4), i, i, i, i, i, i);
             }
             if (i === 0) {
                 jsonView = jsonView + "No documents to be displayed";
@@ -119,10 +136,13 @@ YUI({
                 }, "#delete" + i);
                 Y.on("click", saveDoc, "#save" + i);
                 Y.on("click", cancelSave, "#cancel" + i);
+                Y.on("click", acceptRequest, "#accept" + i);
+                Y.on("click", rejectRequest, "#reject" + i);
             }
             for (i = 0; i < documents.length; i++) {
                 fitToContent(500, document.getElementById("ta" + i));
             }
+            
             var trSelectionClass = 'selected';
             // add click listener to select and deselect rows.
             Y.all('.jsonTable tr').on("click", function(eventObject) {
@@ -135,9 +155,16 @@ YUI({
 
                 if (!alreadySelected) {
                     currentTR.addClass(trSelectionClass);
-                    var editBtn = currentTR.one('button.editbtn');
-                    if (editBtn) {
-                        editBtn.focus();
+                    if (response.isPendingAccessRequests) {
+                    	var acceptbtn = currentTR.one('button.acceptbtn');
+                        if (acceptbtn) {
+                        	acceptbtn.focus();
+                        }
+                    } else {
+                    	var editBtn = currentTR.one('button.editbtn');
+                        if (editBtn) {
+                            editBtn.focus();
+                        }
                     }
                 }
             });
@@ -212,6 +239,17 @@ YUI({
                 Y.one("#cancel" + index).addClass("invisible");
                 Y.one("#edit" + index).removeClass("invisible");
                 Y.one("#delete" + index).removeClass("invisible");
+                Y.one("#accept" + index).addClass("invisible");
+                Y.one("#reject" + index).addClass("invisible");
+            } else if (action === actionMap.accept) {
+                textArea.addClass('disabled');
+                textArea.setAttribute("disabled", "disabled");
+                Y.one("#save" + index).addClass("invisible");
+                Y.one("#cancel" + index).addClass("invisible");
+                Y.one("#edit" + index).addClass("invisible");
+                Y.one("#delete" + index).addClass("invisible");
+                Y.one("#accept" + index).removeClass("invisible");
+                Y.one("#reject" + index).removeClass("invisible");
             } else {
                 textArea.removeAttribute("disabled");
                 textArea.removeClass('disabled');
@@ -219,6 +257,8 @@ YUI({
                 Y.one("#delete" + index).addClass("invisible");
                 Y.one("#save" + index).removeClass("invisible");
                 Y.one("#cancel" + index).removeClass("invisible");
+                Y.one("#accept" + index).addClass("invisible");
+                Y.one("#reject" + index).addClass("invisible");
             }
             targetNode.focus();
         }
@@ -343,6 +383,52 @@ YUI({
                 textArea.focus();
             }
         }
+        
+        /**
+         * The function is an event handler for the accept button click.
+         * @param eventObject The event Object
+         */
+
+        function acceptRequest(eventObject) {
+            var targetNode = eventObject.currentTarget;
+            var index = getButtonIndex(targetNode);
+            var textArea = Y.one('#doc' + index).one("pre").one("textarea");
+            var doc = textArea.get("value");
+            try {
+                var parsedDoc = Y.JSON.parse(doc);
+                var docId = Y.JSON.stringify(parsedDoc._id);
+                var acceptRequestDoc = Y.io(MV.URLMap.acceptRequest(), {
+                    method: "POST",
+                    data: "_id=" + docId + "&keys=" + doc,
+                    on: {
+                        success: function(ioId, responseObject) {
+                            var parsedResponse = Y.JSON.parse(responseObject.responseText);
+                            var response = parsedResponse.response.result;
+                            if (response !== undefined) {
+                                var targetNode = eventObject.currentTarget;
+                                var index = getButtonIndex(targetNode);
+                                toggleSaveEdit(targetNode, index, actionMap.accept);
+                                MV.showAlertMessage("Request Accepted.", MV.infoIcon);
+                                Y.one('#showAllPendingRequests').simulate('click');
+                                Y.log("Document update to [0]".format(response), "info");
+                            } else {
+                                var error = parsedResponse.response.error;
+                                MV.showAlertMessage("Could not update Document ! [0]", MV.warnIcon, error.code);
+                                Y.log("Could not update Document ! [0]".format(MV.errorCodeMap[error.code]), "error");
+                            }
+                        },
+                        failure: function(ioId, responseObject) {
+                            MV.showAlertMessage("Unexpected Error: Could not update the document. Check if app server is running", MV.warnIcon);
+                            Y.log("Could not send the request to update the document. Response Status: [0]".format(responseObject.statusText), "error");
+                        }
+                    }
+                });
+            } catch (e) {
+                var message = e.message.substr(e.message.indexOf(":") + 1);
+                MV.showAlertMessage("Invalid Document format: " + message, MV.warnIcon);
+                textArea.focus();
+            }
+        }
 
         /**
          * The function is an event handler for the cancel button click
@@ -355,6 +441,47 @@ YUI({
             var textArea = Y.one('#doc' + index).one("pre").one("textarea");
             textArea.set("value", idMap[index].originalDoc);
             toggleSaveEdit(targetNode, index, actionMap.save);
+        }
+        
+        function rejectRequest(eventObject) {
+        	var targetNode = eventObject.currentTarget;
+            var index = getButtonIndex(targetNode);
+            var textArea = Y.one('#doc' + index).one("pre").one("textarea");
+            var doc = textArea.get("value");
+            try {
+                var parsedDoc = Y.JSON.parse(doc);
+                var docId = Y.JSON.stringify(parsedDoc._id);
+                var rejectRequestDoc = Y.io(MV.URLMap.rejectRequest(), {
+                    method: "POST",
+                    data: "_id=" + docId + "&keys=" + doc,
+                    on: {
+                        success: function(ioId, responseObject) {
+                            var parsedResponse = Y.JSON.parse(responseObject.responseText);
+                            var response = parsedResponse.response.result;
+                            if (response !== undefined) {
+                                var targetNode = eventObject.currentTarget;
+                                var index = getButtonIndex(targetNode);
+                                toggleSaveEdit(targetNode, index, actionMap.accept);
+                                MV.showAlertMessage("Request Rejected.", MV.infoIcon);
+                                Y.one('#showAllPendingRequests').simulate('click');
+                                Y.log("Document update to [0]".format(response), "info");
+                            } else {
+                                var error = parsedResponse.response.error;
+                                MV.showAlertMessage("Could not update Document ! [0]", MV.warnIcon, error.code);
+                                Y.log("Could not update Document ! [0]".format(MV.errorCodeMap[error.code]), "error");
+                            }
+                        },
+                        failure: function(ioId, responseObject) {
+                            MV.showAlertMessage("Unexpected Error: Could not update the document. Check if app server is running", MV.warnIcon);
+                            Y.log("Could not send the request to update the document. Response Status: [0]".format(responseObject.statusText), "error");
+                        }
+                    }
+                });
+            } catch (e) {
+                var message = e.message.substr(e.message.indexOf(":") + 1);
+                MV.showAlertMessage("Invalid Document format: " + message, MV.warnIcon);
+                textArea.focus();
+            }
         }
 
         /**
