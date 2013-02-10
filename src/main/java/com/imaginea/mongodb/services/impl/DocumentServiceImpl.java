@@ -23,6 +23,10 @@ import com.imaginea.mongodb.services.DocumentService;
 import com.imaginea.mongodb.utils.JSON;
 import com.imaginea.mongodb.utils.QueryExecutor;
 import com.mongodb.*;
+import com.mongodb.gridfs.GridFS;
+import com.mongodb.gridfs.GridFSDBFile;
+
+import org.bson.types.ObjectId;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -38,7 +42,8 @@ import java.util.List;
  */
 
 public class DocumentServiceImpl implements DocumentService {
-    /**
+    private static final String MEDIA_FILES = "media_files";
+	/**
      * Mongo Instance to communicate with mongo
      */
     private Mongo mongoInstance;
@@ -286,7 +291,7 @@ public class DocumentServiceImpl implements DocumentService {
         if (collectionName.equals("")) {
             throw new CollectionException(ErrorCodes.COLLECTION_NAME_EMPTY, "Collection Name Empty");
         }
-
+        
         String result = null;
         DBObject documentData = null;
         try {
@@ -315,6 +320,9 @@ public class DocumentServiceImpl implements DocumentService {
                 throw new DocumentException(ErrorCodes.DOCUMENT_DOES_NOT_EXIST, "Document does not exist !");
             }
 
+            if(collectionName.equals(MEDIA_FILES)) {
+            	deleteRelatedFilesFromMediaBucket(dbName, documentData);
+            }
             mongoInstance.getDB(dbName).getCollection(collectionName).remove(documentData);
 
         } catch (MongoException e) {
@@ -323,4 +331,25 @@ public class DocumentServiceImpl implements DocumentService {
         result = "Document with Data : [" + documentData + "] has been deleted.";
         return result;
     }
+
+	private void deleteRelatedFilesFromMediaBucket(String dbName, DBObject mediaFileObject) throws DatabaseException, DocumentException {
+        try {
+            GridFS gridFS = new GridFS(mongoInstance.getDB(dbName), "mediaBucket");
+            String pictureDocId = (String) mediaFileObject.get("pictureId");
+            deleteGridFSFile(gridFS, pictureDocId);
+            String mediaDocId = (String) mediaFileObject.get("mediaFileId");
+            deleteGridFSFile(gridFS, mediaDocId);
+        } catch (MongoException e) {
+            throw new DocumentException(ErrorCodes.DOCUMENT_DELETION_EXCEPTION, e.getMessage());
+        }
+	}
+
+	private void deleteGridFSFile(GridFS gridFS, String pictureDocId) {
+		ObjectId docId = (ObjectId)JSON.parse(pictureDocId);
+		BasicDBObject objectId = new BasicDBObject("_id", docId);
+		GridFSDBFile gridFSDBFile = gridFS.findOne(objectId);
+		if (gridFSDBFile != null) {
+			gridFS.remove(objectId);
+		}
+	}
 }

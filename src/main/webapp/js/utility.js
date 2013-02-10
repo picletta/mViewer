@@ -247,6 +247,9 @@ YUI.add('utility', function(Y) {
         rejectRequest: function() {
             return "services/[0]/[1]/document/rejectRequest?connectionId=[2]&ts=[3]".format(sm.currentDB(), sm.currentColl(), sm.connectionId(), sm.now());
         },
+        mediaFileUpload: function() {
+            return "services/[0]/[1]/mediafile/upload?connectionId=[2]&ts=[3]".format(sm.currentDB(), sm.currentColl(), sm.connectionId(), sm.now());
+        },
         deleteDoc: function() {
             return "services/[0]/[1]/document?connectionId=[2]&action=DELETE&ts=[3]".format(sm.currentDB(), sm.currentColl(), sm.connectionId(), sm.now());
         },

@@ -341,7 +341,7 @@ YUI({
                                     Y.one('#execQueryButton').simulate('click');
                                 } else {
                                     var error = parsedResponse.response.error;
-                                    MV.showAlertMessage("Could not delete the document with _id [0]. [1]".format(docId, MV.errorCodeMap[error.code]), MV.warnIcon);
+                                    MV.showAlertMessage("Could not delete the document with _id [0]. [1]".format(docId, error.message), MV.warnIcon);
                                     Y.log("Could not delete the document with _id =  [0], Error message: [1], Error Code: [2]".format(docId, error.message, error.code), "error");
                                 }
                             },

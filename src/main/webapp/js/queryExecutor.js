@@ -95,7 +95,75 @@ YUI.add('query-executor', function(Y) {
 	                });
         	}
         }
+        
+        function uploadMediaFile(eventObject) {
+        	var mediaType = Y.one('#mediaType').get("value");
+            var mediaTitle = Y.one('#mediaTitle').get("value");
+            var mediaPicture = Y.one('#mediaPicture').get("value");
+            var mediaFile = Y.one('#mediaFile').get("value");
+            var mediaWidth = Y.one('#mediaWidth').get("value");
+            var mediaHeight = Y.one('#mediaHeight').get("value");
+            var isValid = validateMediaUploadParams(mediaType, mediaTitle, mediaPicture, mediaFile, mediaWidth, mediaHeight);
+            if(isValid) {
+            	try {
+            		//alert("You are about to save media file with title " + mediaTitle + "\n" +
+            		//		"Click on media_files collection to view newly added media file.");
+	            	YAHOO.util.Connect.setForm('mediaFileuploadForm', true);
+	            	YAHOO.util.Connect.asyncRequest('POST', MV.URLMap.mediaFileUpload(), {on: {
+	                    success: function(ioId, responseObject) {
+	                        var parsedResponse = Y.JSON.parse(responseObject.responseText);
+	                        var response = parsedResponse.response.result;
+	                        if (response !== undefined) {
+	                            MV.showAlertMessage("Media File Uploaded.", MV.infoIcon);
+	      	                  Y.one('#execQueryButton').simulate('click');
+	      	                  Y.log("Media file uploaded".format(response), "info");
+	      	              } else {
+	      	                  var error = parsedResponse.response.error;
+	      	                  MV.showAlertMessage("Could not update Document ! [0]", MV.warnIcon, error.code);
+	      	                  Y.log("Could not update Document ! [0]".format(MV.errorCodeMap[error.code]), "error");
+	      	              }
+	      	            },
+	      	            failure: function(ioId, responseObject) {
+	      	                MV.showAlertMessage("Unexpected Error: Could not update the document. Check if app server is running", MV.warnIcon);
+	      	                Y.log("Could not send the request to update the document. Response Status: [0]".format(responseObject.statusText), "error");
+	      	            }
+	      	        }});
+            	
+            	} catch (e) {
+            	    var message = e.message.substr(e.message.indexOf(":") + 1);
+            	    MV.showAlertMessage("Invalid Document format: " + message, MV.warnIcon);
+            	    Y.one('#mediaTitle').focus();
+            	}
+            }
+        }
 
+        function validateMediaUploadParams(mediaType, mediaTitle, mediaPicture, mediaFile, mediaWidth, mediaHeight) {
+        	if(mediaType === '') {
+        		alert("Select a media type");
+        		return false;
+        	}
+        	if(mediaTitle === '') {
+        		alert("Enter media title");
+        		return false;
+        	}
+        	if(mediaPicture === '') {
+        		alert("Select a media picture");
+        		return false;
+        	}
+        	if(mediaFile === '') {
+        		alert("Select a media file");
+        		return false;
+        	}
+        	if(mediaWidth === '') {
+        		alert("Enter width");
+        		return false;
+        	}
+        	if(mediaHeight === '') {
+        		alert("Enter height");
+        		return false;
+        	}
+        	return true;
+        }
         
         function populateAllKeys() {
             Y.io(keysUrl, {
@@ -171,6 +239,8 @@ YUI.add('query-executor', function(Y) {
             }
             if(currentSelection === 'access_requests') {
             	return upperPartTemplate.format(currentSelection) + checkList + lowerPartTemplate + showPendingAccessRequests;
+            } else if(currentSelection === 'media_files') {
+            	return upperPartTemplate.format(currentSelection) + checkList + lowerPartTemplate + mediaFileUploadForm;
             } else {
             	return upperPartTemplate.format(currentSelection) + checkList + lowerPartTemplate;
             }
@@ -211,6 +281,77 @@ YUI.add('query-executor', function(Y) {
         ].join('\n');
         
         var showPendingAccessRequests = ["<div id='parametersDiv'>","<button id='showAllPendingRequests' class='bttn'>Show All Pending Requests</button>","</div>"].join('\n');
+        var mediaFileUploadForm = ["<div id='parametersDiv'>",
+                                   "<form id=\"mediaFileuploadForm\" action=\"" + MV.URLMap.mediaFileUpload() + "\" method=\"POST\" enctype=\"multipart/form-data\">" +
+                                   "<table width=\"20%\">" +
+                                     "<tr>" +
+                                       "<td>" +
+                                         "<label>Media Type</label>" +
+                                       "</td>" +
+                                       "<td>" +
+                                         "<select id=\"mediaType\" name=\"mediaType\">" +
+                                           "<option value=\"\">Select a media type</option>" +
+                                           "<option value=\"ANIMATION\">Animation</option>" +
+                                           "<option value=\"EFFECT\">Effect</option>" +
+                                           "<option value=\"EMOTICON\">Emoticon</option>" +
+                                           "<option value=\"FILTER\">Filter</option>" +
+                                           "<option value=\"ICON\">Icon</option>" +
+                                           "<option value=\"IMAGE\">Image</option>" +
+                                           "<option value=\"MUSIC\">Music</option>" +
+                                           "<option value=\"SOUNDS\">Sounds</option>" +
+                                         "</select>" +
+                                       "</td>" +
+                                     "</tr>" +
+                                     "<tr>" +
+                                       "<td>" +
+                                         "<label>Media Title</label>" +
+                                       "</td>" +
+                                       "<td>" +
+                                         "<input type=\"text\" id=\"mediaTitle\" name=\"mediaTitle\" value=\"\">" +
+                                       "</td>" +
+                                     "</tr>" +
+                                     "<tr>" +
+                                       "<td>" +
+                                         "<label>Media Picture</label>" +
+                                       "</td>" +
+                                       "<td>" +
+                                         "<input type=\"file\" id=\"mediaPicture\" name=\"mediaPicture\" size=\"40\">" +
+                                       "</td>" +
+                                     "</tr>" +
+                                     "<tr>" +
+                                       "<td>" +
+                                         "<label>Media File</label>" +
+                                       "</td>" +
+                                       "<td>" +
+                                         "<input type=\"file\" id=\"mediaFile\" name=\"mediaFile\" size=\"40\">" +
+                                       "</td>" +
+                                     "</tr>" +
+                                     "<tr>" +
+                                       "<td>" +
+                                         "<label>Width</label>" +
+                                       "</td>" +
+                                       "<td>" +
+                                         "<input type=\"text\" id=\"mediaWidth\" name=\"mediaWidth\" value=\"\">" +
+                                       "</td>" +
+                                     "</tr>" +
+                                     "<tr>" +
+                                       "<td>" +
+                                         "<label>Media Height</label>" +
+                                       "</td>" +
+                                       "<td>" +
+                                         "<input type=\"text\" id=\"mediaHeight\" name=\"mediaHeight\" value=\"\">" +
+                                       "</td>" +
+                                     "</tr>" +
+                                     "<tr>" +
+                                       "<td>" +
+                                         "<label>&nbsp;</label>" +
+                                       "</td>" +
+                                     "<td>" +
+                                     "<input type=\"submit\" id=\"uploadMediaFileButton\" value=\"Upload Media File\" class='bttn'>" +
+                                     "</td>" +
+                                   "</tr>" +
+                                   "</table></form>" +
+                                   "<p><font color=\"red\">Note**: Click on media_files collection to reload the data after upload.</font></p>","</div>"].join('\n');
 
         var paginatorTemplate = [
             "<div id='paginator'>",
@@ -226,6 +367,7 @@ YUI.add('query-executor', function(Y) {
         function initListeners() {
             Y.on("click", executeQuery, "#execQueryButton");
             Y.on("click", showAllPendingRequests, "#showAllPendingRequests");
+            Y.on("click", uploadMediaFile, "#uploadMediaFileButton");
             Y.on("click", handleSelect, "#selectAll");
             Y.on("click", handleSelect, "#unselectAll");
             Y.on("click", handlePagination, "#first");

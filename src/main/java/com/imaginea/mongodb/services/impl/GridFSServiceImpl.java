@@ -47,7 +47,11 @@ import java.util.Iterator;
  */
 public class GridFSServiceImpl implements GridFSService {
 
-    /**
+    private static final String MEDIA_FILES = "media_files";
+
+	private static final String MEDIA_BUCKET = "mediaBucket";
+
+	/**
      * Mongo Instance to communicate with mongo
      */
     private Mongo mongoInstance;
@@ -282,6 +286,10 @@ public class GridFSServiceImpl implements GridFSService {
                 throw new DocumentException(ErrorCodes.DOCUMENT_EMPTY, "File is empty");
             }
 
+            if(bucketName.equals(MEDIA_BUCKET)) {
+            	validateMediaDeletion(dbName, _id);
+            }
+            
             GridFS gridFS = new GridFS(mongoInstance.getDB(dbName), bucketName);
             Object docId = JSON.parse(_id);
             BasicDBObject objectId = new BasicDBObject("_id", docId);
@@ -299,6 +307,28 @@ public class GridFSServiceImpl implements GridFSService {
         result = "File [" + gridFSDBFile.getFilename() + "] has been deleted.";
         return result;
     }
+
+	private void validateMediaDeletion(String dbName, String _id)
+			throws DocumentException {
+		DBCollection collection = this.mongoInstance.getDB(dbName).getCollection(MEDIA_FILES);
+		DBCursor mediaFileCursor = (DBCursor) collection.find();
+		Object docId = JSON.parse(_id);
+		while(mediaFileCursor.hasNext()) {
+			DBObject mediaFile = mediaFileCursor.next();
+			String pictureIdStr = (String) mediaFile.get("pictureId");
+			Object pictureId = JSON.parse(pictureIdStr);
+			if(docId.equals(pictureId)) {
+				throw new DocumentException(ErrorCodes.DOCUMENT_DELETION_EXCEPTION, "Cannot delete file from bucket. " +
+			    		"This file has reference to a media in media_files collection.");
+			}
+			String mediaFileIdStr = (String) mediaFile.get("mediaFileId");
+			Object mediaId = JSON.parse(mediaFileIdStr);
+			if(docId.equals(mediaId)) {
+				throw new DocumentException(ErrorCodes.DOCUMENT_DELETION_EXCEPTION, "Cannot delete file from bucket. " +
+			    		"This file has reference to a media in media_files collection.");
+			}
+		}
+	}
 
     /**
      * Service implementation for dropping all files from a GridFS bucket.
