@@ -296,14 +296,14 @@ YUI.add('query-executor', function(Y) {
                                        "<td>" +
                                          "<select id=\"mediaType\" name=\"mediaType\">" +
                                            "<option value=\"\">Select a media type</option>" +
-                                           "<option value=\"ANIMATION\">Animation</option>" +
-                                           "<option value=\"EFFECT\">Effect</option>" +
-                                           "<option value=\"EMOTICON\">Emoticon</option>" +
-                                           "<option value=\"FILTER\">Filter</option>" +
-                                           "<option value=\"ICON\">Icon</option>" +
-                                           "<option value=\"IMAGE\">Image</option>" +
-                                           "<option value=\"MUSIC\">Music</option>" +
-                                           "<option value=\"SOUNDS\">Sounds</option>" +
+                                           "<option value=\"animations\">Animation</option>" +
+                                           "<option value=\"effects\">Effect</option>" +
+                                           "<option value=\"emoticons\">Emoticon</option>" +
+                                           "<option value=\"filters\">Filter</option>" +
+                                           "<option value=\"icons\">Icon</option>" +
+                                           "<option value=\"images\">Image</option>" +
+                                           "<option value=\"music\">Music</option>" +
+                                           "<option value=\"sounds\">Sounds</option>" +
                                          "</select>" +
                                        "</td>" +
                                      "</tr>" +
