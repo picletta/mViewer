@@ -285,13 +285,13 @@ public class GridFSServiceImpl implements GridFSService {
             if (_id == null) {
                 throw new DocumentException(ErrorCodes.DOCUMENT_EMPTY, "File is empty");
             }
-
+            Object docId = JSON.parse(_id);
             if(bucketName.equals(MEDIA_BUCKET)) {
-            	validateMediaDeletion(dbName, _id);
+            	validateMediaDeletion(dbName, docId.toString());
             }
             
             GridFS gridFS = new GridFS(mongoInstance.getDB(dbName), bucketName);
-            Object docId = JSON.parse(_id);
+            
             BasicDBObject objectId = new BasicDBObject("_id", docId);
             gridFSDBFile = gridFS.findOne(objectId);
 
@@ -312,18 +312,15 @@ public class GridFSServiceImpl implements GridFSService {
 			throws DocumentException {
 		DBCollection collection = this.mongoInstance.getDB(dbName).getCollection(MEDIA_FILES);
 		DBCursor mediaFileCursor = (DBCursor) collection.find();
-		Object docId = JSON.parse(_id);
 		while(mediaFileCursor.hasNext()) {
 			DBObject mediaFile = mediaFileCursor.next();
-			String pictureIdStr = (String) mediaFile.get("pictureId");
-			Object pictureId = JSON.parse(pictureIdStr);
-			if(docId.equals(pictureId)) {
+			String pictureId = (String) mediaFile.get("pictureId");
+			if(_id.equals(pictureId)) {
 				throw new DocumentException(ErrorCodes.DOCUMENT_DELETION_EXCEPTION, "Cannot delete file from bucket. " +
 			    		"This file has reference to a media in media_files collection.");
 			}
-			String mediaFileIdStr = (String) mediaFile.get("mediaFileId");
-			Object mediaId = JSON.parse(mediaFileIdStr);
-			if(docId.equals(mediaId)) {
+			String mediaFileId = (String) mediaFile.get("mediaFileId");
+			if(_id.equals(mediaFileId)) {
 				throw new DocumentException(ErrorCodes.DOCUMENT_DELETION_EXCEPTION, "Cannot delete file from bucket. " +
 			    		"This file has reference to a media in media_files collection.");
 			}

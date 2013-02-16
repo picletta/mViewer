@@ -110,8 +110,9 @@ YUI.add('query-executor', function(Y) {
             		//alert("You are about to save media file with title " + mediaTitle + "\n" +
             		//		"Click on media_files collection to view newly added media file.");
 	            	YAHOO.util.Connect.setForm('mediaFileuploadForm', true);
-	            	YAHOO.util.Connect.asyncRequest('POST', MV.URLMap.mediaFileUpload(), {on: {
-	                    success: function(ioId, responseObject) {
+	            	YAHOO.util.Connect.asyncRequest('POST', MV.URLMap.mediaFileUpload(), {
+	                    success: function(o) {
+	                    	alert("Success");
 	                        var parsedResponse = Y.JSON.parse(responseObject.responseText);
 	                        var response = parsedResponse.response.result;
 	                        if (response !== undefined) {
@@ -124,11 +125,12 @@ YUI.add('query-executor', function(Y) {
 	      	                  Y.log("Could not update Document ! [0]".format(MV.errorCodeMap[error.code]), "error");
 	      	              }
 	      	            },
-	      	            failure: function(ioId, responseObject) {
+	      	            failure: function(o) {
+	      	            	alert("Failure");
 	      	                MV.showAlertMessage("Unexpected Error: Could not update the document. Check if app server is running", MV.warnIcon);
-	      	                Y.log("Could not send the request to update the document. Response Status: [0]".format(responseObject.statusText), "error");
+	      	                Y.log("Could not send the request to update the document. Response Status: [0]".format(responseObject.responseText), "error");
 	      	            }
-	      	        }});
+	      	        });
             	
             	} catch (e) {
             	    var message = e.message.substr(e.message.indexOf(":") + 1);

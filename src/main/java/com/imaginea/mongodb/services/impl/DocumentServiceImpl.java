@@ -345,8 +345,7 @@ public class DocumentServiceImpl implements DocumentService {
 	}
 
 	private void deleteGridFSFile(GridFS gridFS, String pictureDocId) {
-		ObjectId docId = (ObjectId)JSON.parse(pictureDocId);
-		BasicDBObject objectId = new BasicDBObject("_id", docId);
+		BasicDBObject objectId = new BasicDBObject("_id", pictureDocId);
 		GridFSDBFile gridFSDBFile = gridFS.findOne(objectId);
 		if (gridFSDBFile != null) {
 			gridFS.remove(objectId);

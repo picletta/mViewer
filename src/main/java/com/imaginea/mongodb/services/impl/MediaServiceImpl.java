@@ -1,6 +1,7 @@
 package com.imaginea.mongodb.services.impl;
 
 import java.io.InputStream;
+import java.util.UUID;
 
 import com.imaginea.mongodb.exceptions.ApplicationException;
 import com.imaginea.mongodb.exceptions.DocumentException;
@@ -51,18 +52,21 @@ public class MediaServiceImpl implements MediaService {
             GridFSInputFile fsPictureFile = gridFS.createFile(mediaPictureInputStream, 
             		mediaPictureFormData.getFormDataContentDisposition().getFileName());
             fsPictureFile.setContentType(mediaPictureFormData.getMediaType().toString());
+            fsPictureFile.put("_id", UUID.randomUUID().toString());
             fsPictureFile.save();
-            String pictureId = JSON.serialize(fsPictureFile.getId());
+            String pictureId = fsPictureFile.getId().toString();
             
             GridFSInputFile fsMediaFile = gridFS.createFile(mediaFileInputStream, 
             		mediaFileFormData.getFormDataContentDisposition().getFileName());
             fsMediaFile.setContentType(mediaFileFormData.getMediaType().toString());
+            fsMediaFile.put("_id", UUID.randomUUID().toString());
             fsMediaFile.save();
-            String mediaFileId = JSON.serialize(fsMediaFile.getId());
+            String mediaFileId = fsMediaFile.getId().toString();
             
             DBCollection mediaFileCollection = mongoInstance.getDB(dbName).getCollection(collectionName);
             
             BasicDBObject mediaFileDocument = new BasicDBObject();
+            mediaFileDocument.put("_id", UUID.randomUUID().toString());
             mediaFileDocument.put("mediaType", mediaType);
             mediaFileDocument.put("mediaTitle", mediaTitle);
             mediaFileDocument.put("pictureId", pictureId);
