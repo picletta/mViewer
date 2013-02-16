@@ -99,11 +99,12 @@ YUI.add('query-executor', function(Y) {
         function uploadMediaFile(eventObject) {
         	var mediaType = Y.one('#mediaType').get("value");
             var mediaTitle = Y.one('#mediaTitle').get("value");
+            var mediaEmbed = Y.one('#mediaEmbed').get("value");
             var mediaPicture = Y.one('#mediaPicture').get("value");
             var mediaFile = Y.one('#mediaFile').get("value");
             var mediaWidth = Y.one('#mediaWidth').get("value");
             var mediaHeight = Y.one('#mediaHeight').get("value");
-            var isValid = validateMediaUploadParams(mediaType, mediaTitle, mediaPicture, mediaFile, mediaWidth, mediaHeight);
+            var isValid = validateMediaUploadParams(mediaType, mediaTitle, mediaEmbed, mediaPicture, mediaFile, mediaWidth, mediaHeight);
             if(isValid) {
             	try {
             		//alert("You are about to save media file with title " + mediaTitle + "\n" +
@@ -137,13 +138,17 @@ YUI.add('query-executor', function(Y) {
             }
         }
 
-        function validateMediaUploadParams(mediaType, mediaTitle, mediaPicture, mediaFile, mediaWidth, mediaHeight) {
+        function validateMediaUploadParams(mediaType, mediaTitle, mediaEmbed, mediaPicture, mediaFile, mediaWidth, mediaHeight) {
         	if(mediaType === '') {
         		alert("Select a media type");
         		return false;
         	}
         	if(mediaTitle === '') {
         		alert("Enter media title");
+        		return false;
+        	}
+        	if(mediaEmbed === '') {
+        		alert("Enter media embed");
         		return false;
         	}
         	if(mediaPicture === '') {
@@ -308,6 +313,14 @@ YUI.add('query-executor', function(Y) {
                                        "</td>" +
                                        "<td>" +
                                          "<input type=\"text\" id=\"mediaTitle\" name=\"mediaTitle\" value=\"\">" +
+                                       "</td>" +
+                                     "</tr>" +
+                                     "<tr>" +
+                                       "<td>" +
+                                         "<label>Embed</label>" +
+                                       "</td>" +
+                                       "<td>" +
+                                         "<input type=\"text\" id=\"mediaEmbed\" name=\"mediaEmbed\" value=\"\">" +
                                        "</td>" +
                                      "</tr>" +
                                      "<tr>" +

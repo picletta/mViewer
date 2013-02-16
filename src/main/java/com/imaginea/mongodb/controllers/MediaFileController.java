@@ -8,11 +8,9 @@ import java.io.InputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
-import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -22,17 +20,8 @@ import org.json.JSONObject;
 
 import com.imaginea.mongodb.controllers.BaseController.ResponseCallback;
 import com.imaginea.mongodb.controllers.BaseController.ResponseTemplate;
-import com.imaginea.mongodb.exceptions.ApplicationException;
-import com.imaginea.mongodb.exceptions.DocumentException;
-import com.imaginea.mongodb.exceptions.ErrorCodes;
-import com.imaginea.mongodb.services.DocumentService;
 import com.imaginea.mongodb.services.MediaService;
-import com.imaginea.mongodb.services.impl.DocumentServiceImpl;
 import com.imaginea.mongodb.services.impl.MediaServiceImpl;
-import com.imaginea.mongodb.utils.JSON;
-import com.mongodb.DBObject;
-import com.mongodb.gridfs.GridFS;
-import com.mongodb.gridfs.GridFSInputFile;
 import com.sun.jersey.multipart.FormDataBodyPart;
 import com.sun.jersey.multipart.FormDataParam;
 
@@ -56,6 +45,7 @@ public class MediaFileController {
     		                           @DefaultValue("POST") @QueryParam("action") final String action,
     		                           @FormDataParam("mediaType") final String mediaType,
     		                           @FormDataParam("mediaTitle") final String mediaTitle,
+    		                           @FormDataParam("mediaEmbed") final String mediaEmbed,
                                        @FormDataParam("mediaPicture") final FormDataBodyPart mediaPictureFormData,
                                        @FormDataParam("mediaPicture") final InputStream mediaPictureInputStream,
                                        @FormDataParam("mediaFile") final FormDataBodyPart mediaFileFormData,
@@ -69,7 +59,8 @@ public class MediaFileController {
             public Object execute() throws Exception {
 
             	MediaService mediaService = new MediaServiceImpl(connectionId);
-                String resultStr = mediaService.insertMedia(dbName, collectionName, "mediaBucket", mediaType, mediaTitle, mediaPictureFormData,
+                String resultStr = mediaService.insertMedia(dbName, collectionName, "mediaBucket", 
+                		mediaType, mediaTitle, mediaEmbed, mediaPictureFormData,
                 		mediaPictureInputStream, mediaFileFormData, mediaFileInputStream, mediaWidth, mediaHeight);
                 
                 JSONObject result = new JSONObject();

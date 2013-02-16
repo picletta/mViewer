@@ -2,7 +2,6 @@ package com.imaginea.mongodb.services.impl;
 
 import java.io.InputStream;
 
-import com.imaginea.mongodb.domain.MediaType;
 import com.imaginea.mongodb.exceptions.ApplicationException;
 import com.imaginea.mongodb.exceptions.DocumentException;
 import com.imaginea.mongodb.exceptions.ErrorCodes;
@@ -35,7 +34,8 @@ public class MediaServiceImpl implements MediaService {
 			                  String collectionName,
 			                  String bucketName, 
 			                  String mediaType, 
-			                  String mediaTitle, 
+			                  String mediaTitle,
+			                  String mediaEmbed,
 			                  FormDataBodyPart mediaPictureFormData, 
 			                  InputStream mediaPictureInputStream, 
 			                  FormDataBodyPart mediaFileFormData, 
@@ -62,14 +62,12 @@ public class MediaServiceImpl implements MediaService {
             
             DBCollection mediaFileCollection = mongoInstance.getDB(dbName).getCollection(collectionName);
             
-            MediaType mediaTypeEnum = MediaType.fromCode(mediaType);
-            
             BasicDBObject mediaFileDocument = new BasicDBObject();
             mediaFileDocument.put("mediaType", mediaType);
             mediaFileDocument.put("mediaTitle", mediaTitle);
             mediaFileDocument.put("pictureId", pictureId);
             mediaFileDocument.put("mediaFileId", mediaFileId);
-            mediaFileDocument.put("embed", mediaTypeEnum.getEmbed());
+            mediaFileDocument.put("embed", mediaEmbed);
             mediaFileDocument.put("width", mediaWidth);
             mediaFileDocument.put("height", mediaHeight);
             
