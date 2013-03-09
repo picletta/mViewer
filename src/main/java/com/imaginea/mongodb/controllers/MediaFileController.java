@@ -40,7 +40,7 @@ public class MediaFileController {
     @Path("/upload")
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
     //@Produces(MediaType.APPLICATION_JSON)
-    public void acceptPendingRequest(@PathParam("dbName") final String dbName, 
+    public void uploadFile(@PathParam("dbName") final String dbName, 
     		                           @PathParam("collectionName") final String collectionName, 
     		                           @DefaultValue("POST") @QueryParam("action") final String action,
     		                           @FormDataParam("mediaType") final String mediaType,
