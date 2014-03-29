@@ -33,27 +33,29 @@ import com.sun.jersey.multipart.FormDataParam;
  */
 @Path("/{dbName}/{collectionName}/mediafile")
 public class MediaFileController {
-	
-	private final static Logger logger = Logger.getLogger(MediaFileController.class);
-	
-	@POST
+    
+    private final static Logger logger = Logger.getLogger(MediaFileController.class);
+    
+    @POST
     @Path("/upload")
-	@Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
     //@Produces(MediaType.APPLICATION_JSON)
     public void uploadFile(@PathParam("dbName") final String dbName, 
-    		                           @PathParam("collectionName") final String collectionName, 
-    		                           @DefaultValue("POST") @QueryParam("action") final String action,
-    		                           @FormDataParam("mediaType") final String mediaType,
-    		                           @FormDataParam("mediaTitle") final String mediaTitle,
-    		                           @FormDataParam("mediaEmbed") final String mediaEmbed,
-                                       @FormDataParam("mediaPicture") final FormDataBodyPart mediaPictureFormData,
-                                       @FormDataParam("mediaPicture") final InputStream mediaPictureInputStream,
-                                       @FormDataParam("mediaFile") final FormDataBodyPart mediaFileFormData,
-                                       @FormDataParam("mediaFile") final InputStream mediaFileInputStream,
-                                       @FormDataParam("mediaWidth") final String mediaWidth,
-                                       @FormDataParam("mediaHeight") final String mediaHeight,
-                                       @QueryParam("connectionId") final String connectionId,
-                                       @Context final HttpServletRequest request) {
+                           @PathParam("collectionName") final String collectionName, 
+                           @DefaultValue("POST") @QueryParam("action") final String action,
+                           @FormDataParam("mediaType") final String mediaType,
+                           @FormDataParam("mediaTitle") final String mediaTitle,
+                           @FormDataParam("mediaEmbed") final String mediaEmbed,
+                           @FormDataParam("mediaPicture") final FormDataBodyPart mediaPictureFormData,
+                           @FormDataParam("mediaPicture") final InputStream mediaPictureInputStream,
+                           @FormDataParam("mediaFile") final FormDataBodyPart mediaFileFormData,
+                           @FormDataParam("mediaFile") final InputStream mediaFileInputStream,
+                           @FormDataParam("musicFile") final FormDataBodyPart musicFileFormData,
+                           @FormDataParam("musicFile") final InputStream musicFileInputStream,
+                           @FormDataParam("mediaWidth") final String mediaWidth,
+                           @FormDataParam("mediaHeight") final String mediaHeight,
+                           @QueryParam("connectionId") final String connectionId,
+                           @Context final HttpServletRequest request) {
 
         String response = new ResponseTemplate().execute(logger, connectionId, request, new ResponseCallback() {
             public Object execute() throws Exception {
@@ -61,7 +63,8 @@ public class MediaFileController {
             	MediaService mediaService = new MediaServiceImpl(connectionId);
                 String resultStr = mediaService.insertMedia(dbName, collectionName, "mediaBucket", 
                 		mediaType, mediaTitle, mediaEmbed, mediaPictureFormData,
-                		mediaPictureInputStream, mediaFileFormData, mediaFileInputStream, mediaWidth, mediaHeight);
+                		mediaPictureInputStream, mediaFileFormData, mediaFileInputStream, 
+                		musicFileFormData, musicFileInputStream, mediaWidth, mediaHeight);
                 
                 JSONObject result = new JSONObject();
                 logger.info("Stored media file : " + resultStr);

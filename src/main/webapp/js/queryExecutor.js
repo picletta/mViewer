@@ -102,9 +102,10 @@ YUI.add('query-executor', function(Y) {
             var mediaEmbed = Y.one('#mediaEmbed').get("value");
             var mediaPicture = Y.one('#mediaPicture').get("value");
             var mediaFile = Y.one('#mediaFile').get("value");
+            var musicFile = Y.one('#musicFile').get("value");
             var mediaWidth = Y.one('#mediaWidth').get("value");
             var mediaHeight = Y.one('#mediaHeight').get("value");
-            var isValid = validateMediaUploadParams(mediaType, mediaTitle, mediaEmbed, mediaPicture, mediaFile, mediaWidth, mediaHeight);
+            var isValid = validateMediaUploadParams(mediaType, mediaTitle, mediaEmbed, mediaPicture, mediaFile, musicFile, mediaWidth, mediaHeight);
             if(isValid) {
             	try {
             		//alert("You are about to save media file with title " + mediaTitle + "\n" +
@@ -140,7 +141,7 @@ YUI.add('query-executor', function(Y) {
             }
         }
 
-        function validateMediaUploadParams(mediaType, mediaTitle, mediaEmbed, mediaPicture, mediaFile, mediaWidth, mediaHeight) {
+        function validateMediaUploadParams(mediaType, mediaTitle, mediaEmbed, mediaPicture, mediaFile, musicFile, mediaWidth, mediaHeight) {
         	if(mediaType === '') {
         		alert("Select a media type");
         		return false;
@@ -160,6 +161,12 @@ YUI.add('query-executor', function(Y) {
         	if(mediaFile === '') {
         		alert("Select a media file");
         		return false;
+        	}
+        	if(mediaType === 'music' || mediaType === 'sounds' ) {
+        		if(musicFile === '') {
+            		alert("Select a music/sound file");
+            		return false;
+            	}
         	}
         	if(mediaWidth === '') {
         		alert("Enter width");
@@ -327,7 +334,7 @@ YUI.add('query-executor', function(Y) {
                                      "</tr>" +
                                      "<tr>" +
                                        "<td>" +
-                                         "<label>Media Picture</label>" +
+                                         "<label>Media Picture <font color=\"blue\">(Media Thumbnail)</font></label>" +
                                        "</td>" +
                                        "<td>" +
                                          "<input type=\"file\" id=\"mediaPicture\" name=\"mediaPicture\" size=\"40\">" +
@@ -335,12 +342,20 @@ YUI.add('query-executor', function(Y) {
                                      "</tr>" +
                                      "<tr>" +
                                        "<td>" +
-                                         "<label>Media File</label>" +
+                                         "<label>Media File <font color=\"blue\">(XML/SVG)</font></label>" +
                                        "</td>" +
                                        "<td>" +
                                          "<input type=\"file\" id=\"mediaFile\" name=\"mediaFile\" size=\"40\">" +
                                        "</td>" +
                                      "</tr>" +
+                                     "<tr>" +
+                                     "<td>" +
+                                       "<label>Music / Sound File <font color=\"blue\">(Not required for other media types)</font></label>" +
+                                     "</td>" +
+                                     "<td>" +
+                                       "<input type=\"file\" id=\"musicFile\" name=\"musicFile\" size=\"40\">" +
+                                     "</td>" +
+                                   "</tr>" +
                                      "<tr>" +
                                        "<td>" +
                                          "<label>Width</label>" +
@@ -545,3 +560,4 @@ YUI.add('query-executor', function(Y) {
 }, '3.3.0', {
     requires: ["json-parse", "node-event-simulate"]
 });
+

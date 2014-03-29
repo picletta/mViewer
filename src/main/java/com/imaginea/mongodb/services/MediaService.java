@@ -16,7 +16,10 @@ public interface MediaService {
 			           FormDataBodyPart mediaPictureFormData, 
 			           InputStream mediaPictureInputStream, 
 			           FormDataBodyPart mediaFileFormData, 
-			           InputStream mediaFileInputStream, 
+			           InputStream mediaFileInputStream,
+			           FormDataBodyPart musicFileFormData, 
+			           InputStream musicFileInputStream,
 			           String mediaWidth,
 			           String mediaHeight) throws DocumentException; 
 }
+

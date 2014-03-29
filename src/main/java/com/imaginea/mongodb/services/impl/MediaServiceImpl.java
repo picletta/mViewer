@@ -9,7 +9,6 @@ import com.imaginea.mongodb.exceptions.ErrorCodes;
 import com.imaginea.mongodb.services.AuthService;
 import com.imaginea.mongodb.services.DatabaseService;
 import com.imaginea.mongodb.services.MediaService;
-import com.imaginea.mongodb.utils.JSON;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.Mongo;
@@ -40,7 +39,9 @@ public class MediaServiceImpl implements MediaService {
 			                  FormDataBodyPart mediaPictureFormData, 
 			                  InputStream mediaPictureInputStream, 
 			                  FormDataBodyPart mediaFileFormData, 
-			                  InputStream mediaFileInputStream, 
+			                  InputStream mediaFileInputStream,
+			                  FormDataBodyPart musicFileFormData, 
+					          InputStream musicFileInputStream,
 			                  String mediaWidth,
 			                  String mediaHeight) throws DocumentException {
 		
@@ -63,6 +64,20 @@ public class MediaServiceImpl implements MediaService {
             fsMediaFile.save();
             String mediaFileId = fsMediaFile.getId().toString();
             
+            // Persist Music/Sound file if passed in request
+            String musicFileId = null;
+            if(musicFileFormData != null && musicFileInputStream != null) {
+            	if(!musicFileFormData.getContentDisposition().getFileName().isEmpty()) {
+            		
+            		GridFSInputFile fsMusicFile = gridFS.createFile(musicFileInputStream,
+            				musicFileFormData.getFormDataContentDisposition().getFileName());
+            		fsMusicFile.setContentType(musicFileFormData.getMediaType().toString());
+            		fsMusicFile.put("_id", UUID.randomUUID().toString());
+            		fsMusicFile.save();
+            		musicFileId = fsMusicFile.getId().toString();
+            	}
+            }
+            
             DBCollection mediaFileCollection = mongoInstance.getDB(dbName).getCollection(collectionName);
             
             BasicDBObject mediaFileDocument = new BasicDBObject();
@@ -71,6 +86,9 @@ public class MediaServiceImpl implements MediaService {
             mediaFileDocument.put("mediaTitle", mediaTitle);
             mediaFileDocument.put("pictureId", pictureId);
             mediaFileDocument.put("mediaFileId", mediaFileId);
+            if(musicFileId != null) {
+            	mediaFileDocument.put("musicFileId", musicFileId);
+            }
             mediaFileDocument.put("embed", mediaEmbed);
             mediaFileDocument.put("width", mediaWidth);
             mediaFileDocument.put("height", mediaHeight);
@@ -81,7 +99,9 @@ public class MediaServiceImpl implements MediaService {
         } catch (MongoException e) {
             throw new DocumentException(ErrorCodes.DOCUMENT_CREATION_EXCEPTION, e.getMessage());
         }
+        
 		return result;
 	}
 
 }
+
